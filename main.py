@@ -131,7 +131,7 @@ class SmartCityDataGenerator:
     def list_poles(self):
         """List all smart poles with their status"""
         query = """
-            SELECT pole_id, location, status, 
+            SELECT sp.pole_id, sp.location, sp.status, 
                    COUNT(spm.id) as module_count
             FROM smart_poles sp
             LEFT JOIN smart_pole_modules spm ON sp.pole_id = spm.pole_id
