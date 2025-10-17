@@ -36,6 +36,52 @@ List all device categories
 ]
 ```
 
+#### `POST /categories`
+Create a new device category
+
+**Request Body:**
+```json
+{
+  "category_id": "new_category_id",
+  "category_name": "New Category Name",
+  "description": "Description of the new category"
+}
+```
+
+#### `GET /categories/{category_id}`
+Get details of a specific device category
+
+**Response:**
+```json
+{
+  "category_id": "power_meter_1ph",
+  "category_name": "Power Meter 1-Phase",
+  "description": "Single-phase power meters for room/zone monitoring"
+}
+```
+
+#### `PUT /categories/{category_id}`
+Update a device category
+
+**Request Body:**
+```json
+{
+  "category_id": "power_meter_1ph",
+  "category_name": "Updated Category Name",
+  "description": "Updated description"
+}
+```
+
+#### `DELETE /categories/{category_id}`
+Delete a device category
+
+**Response:**
+```json
+{
+  "message": "Device category power_meter_1ph deleted successfully"
+}
+```
+
 ### Smart Poles
 
 #### `GET /smart-poles`
@@ -57,6 +103,28 @@ Create a new smart pole
 
 #### `GET /smart-poles/{pole_id}`
 Get details of a specific smart pole
+
+#### `PUT /smart-poles/{pole_id}`
+Update a smart pole
+
+**Request Body:**
+```json
+{
+  "pole_id": "SP001",
+  "location": "Updated Location",
+  "latitude": 13.736717,
+  "longitude": 100.523186,
+  "status": "on"
+}
+```
+
+**Response:**
+```json
+{
+  "message": "Smart pole SP001 updated successfully",
+  "pole_id": "SP001"
+}
+```
 
 #### `PUT /smart-poles/{pole_id}/control`
 Control smart pole (turn on/off)
@@ -160,6 +228,31 @@ Query Parameters:
 ]
 ```
 
+#### `PUT /power-meters/{meter_id}`
+Update a power meter
+
+**Request Body:**
+```json
+{
+  "meter_id": "PM1P001",
+  "meter_type": "1-phase",
+  "location": "Updated Location",
+  "room_name": "Room 101",
+  "building": "Building A",
+  "latitude": 13.736717,
+  "longitude": 100.523186,
+  "status": "active"
+}
+```
+
+**Response:**
+```json
+{
+  "message": "Power meter PM1P001 updated successfully",
+  "meter_id": "PM1P001"
+}
+```
+
 #### `DELETE /power-meters/{meter_id}`
 Delete a power meter
 
@@ -248,6 +341,31 @@ Get latest readings from a flow meter
     "density": null
   }
 ]
+```
+
+#### `PUT /flow-meters/{meter_id}`
+Update a flow meter
+
+**Request Body:**
+```json
+{
+  "meter_id": "FM_W001",
+  "meter_type": "water",
+  "flow_unit": "L/min",
+  "location": "Updated Location",
+  "building": "Building A",
+  "pipe_size_mm": 50,
+  "max_flow_rate": 100.0,
+  "status": "active"
+}
+```
+
+**Response:**
+```json
+{
+  "message": "Flow meter FM_W001 updated successfully",
+  "meter_id": "FM_W001"
+}
 ```
 
 #### `DELETE /flow-meters/{meter_id}`

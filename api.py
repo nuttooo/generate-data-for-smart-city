@@ -107,6 +107,83 @@ async def list_categories():
         for row in results
     ]
 
+@app.post("/categories", tags=["Device Categories"], status_code=201)
+async def create_category(category: DeviceCategory):
+    """Create a new device category"""
+    query = """
+        INSERT INTO device_categories (category_id, category_name, description)
+        VALUES (%s, %s, %s)
+        RETURNING category_id
+    """
+    
+    try:
+        result = db.fetch_one(query, (
+            category.category_id,
+            category.category_name,
+            category.description
+        ))
+        
+        if result:
+            return {"message": "Device category created successfully", "category_id": result[0]}
+        else:
+            raise HTTPException(status_code=500, detail="Failed to create device category")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/categories/{category_id}", tags=["Device Categories"])
+async def get_category(category_id: str):
+    """Get details of a specific device category"""
+    query = """
+        SELECT category_id, category_name, description
+        FROM device_categories
+        WHERE category_id = %s
+    """
+    result = db.fetch_one(query, (category_id,))
+    
+    if not result:
+        raise HTTPException(status_code=404, detail="Device category not found")
+    
+    return {
+        "category_id": result[0],
+        "category_name": result[1],
+        "description": result[2]
+    }
+
+@app.put("/categories/{category_id}", tags=["Device Categories"])
+async def update_category(category_id: str, category: DeviceCategory):
+    """Update a device category"""
+    query = """
+        UPDATE device_categories
+        SET category_name = %s, description = %s
+        WHERE category_id = %s
+        RETURNING category_id
+    """
+    
+    result = db.fetch_one(query, (
+        category.category_name,
+        category.description,
+        category_id
+    ))
+    
+    if not result:
+        raise HTTPException(status_code=404, detail="Device category not found")
+    
+    return {
+        "message": f"Device category {category_id} updated successfully",
+        "category_id": result[0]
+    }
+
+@app.delete("/categories/{category_id}", tags=["Device Categories"])
+async def delete_category(category_id: str):
+    """Delete a device category"""
+    query = "DELETE FROM device_categories WHERE category_id = %s RETURNING category_id"
+    result = db.fetch_one(query, (category_id,))
+    
+    if not result:
+        raise HTTPException(status_code=404, detail="Device category not found")
+    
+    return {"message": f"Device category {category_id} deleted successfully"}
+
 # Smart Pole endpoints
 @app.get("/smart-poles", tags=["Smart Poles"])
 async def list_smart_poles():
@@ -179,6 +256,32 @@ async def get_smart_pole(pole_id: str):
         "status": result[4],
         "created_at": result[5].isoformat() if result[5] else None,
         "updated_at": result[6].isoformat() if result[6] else None
+    }
+
+@app.put("/smart-poles/{pole_id}", tags=["Smart Poles"])
+async def update_smart_pole(pole_id: str, pole: SmartPole):
+    """Update a smart pole"""
+    query = """
+        UPDATE smart_poles
+        SET location = %s, latitude = %s, longitude = %s, status = %s, updated_at = CURRENT_TIMESTAMP
+        WHERE pole_id = %s
+        RETURNING pole_id
+    """
+    
+    result = db.fetch_one(query, (
+        pole.location,
+        pole.latitude,
+        pole.longitude,
+        pole.status,
+        pole_id
+    ))
+    
+    if not result:
+        raise HTTPException(status_code=404, detail="Smart pole not found")
+    
+    return {
+        "message": f"Smart pole {pole_id} updated successfully",
+        "pole_id": result[0]
     }
 
 @app.put("/smart-poles/{pole_id}/control", tags=["Smart Poles"])
@@ -400,6 +503,36 @@ async def get_power_meter_readings(
         for row in results
     ]
 
+@app.put("/power-meters/{meter_id}", tags=["Power Meters"])
+async def update_power_meter(meter_id: str, meter: PowerMeter):
+    """Update a power meter"""
+    query = """
+        UPDATE power_meters
+        SET meter_type = %s, location = %s, room_name = %s, building = %s,
+            latitude = %s, longitude = %s, status = %s, updated_at = CURRENT_TIMESTAMP
+        WHERE meter_id = %s
+        RETURNING meter_id
+    """
+    
+    result = db.fetch_one(query, (
+        meter.meter_type,
+        meter.location,
+        meter.room_name,
+        meter.building,
+        meter.latitude,
+        meter.longitude,
+        meter.status,
+        meter_id
+    ))
+    
+    if not result:
+        raise HTTPException(status_code=404, detail="Power meter not found")
+    
+    return {
+        "message": f"Power meter {meter_id} updated successfully",
+        "meter_id": result[0]
+    }
+
 @app.delete("/power-meters/{meter_id}", tags=["Power Meters"])
 async def delete_power_meter(meter_id: str):
     """Delete a power meter"""
@@ -531,6 +664,36 @@ async def get_flow_meter_readings(
         }
         for row in results
     ]
+
+@app.put("/flow-meters/{meter_id}", tags=["Flow Meters"])
+async def update_flow_meter(meter_id: str, meter: FlowMeter):
+    """Update a flow meter"""
+    query = """
+        UPDATE flow_meters
+        SET meter_type = %s, flow_unit = %s, location = %s, building = %s,
+            pipe_size_mm = %s, max_flow_rate = %s, status = %s, updated_at = CURRENT_TIMESTAMP
+        WHERE meter_id = %s
+        RETURNING meter_id
+    """
+    
+    result = db.fetch_one(query, (
+        meter.meter_type,
+        meter.flow_unit,
+        meter.location,
+        meter.building,
+        meter.pipe_size_mm,
+        meter.max_flow_rate,
+        meter.status,
+        meter_id
+    ))
+    
+    if not result:
+        raise HTTPException(status_code=404, detail="Flow meter not found")
+    
+    return {
+        "message": f"Flow meter {meter_id} updated successfully",
+        "meter_id": result[0]
+    }
 
 @app.delete("/flow-meters/{meter_id}", tags=["Flow Meters"])
 async def delete_flow_meter(meter_id: str):
