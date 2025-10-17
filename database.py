@@ -1,5 +1,6 @@
 import psycopg2
 import os
+import re
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -9,13 +10,35 @@ class DatabaseConnection:
     """Handle database connections for smart city data"""
     
     def __init__(self):
-        self.host = os.getenv('DB_HOST', 'localhost')
-        self.port = os.getenv('DB_PORT', '5432')
-        self.database = os.getenv('DB_NAME', 'smart_city')
-        self.user = os.getenv('DB_USER', 'admin')
-        self.password = os.getenv('DB_PASSWORD', 'admin123')
+        # Check if DATABASE_URL is provided
+        database_url = os.getenv('DATABASE_URL')
+        if database_url:
+            # Parse DATABASE_URL
+            self._parse_database_url(database_url)
+        else:
+            # Use individual environment variables or defaults
+            self.host = os.getenv('DB_HOST', 'localhost')
+            self.port = os.getenv('DB_PORT', '5432')
+            self.database = os.getenv('DB_NAME', 'smart_city')
+            self.user = os.getenv('DB_USER', 'admin')
+            self.password = os.getenv('DB_PASSWORD', 'admin123')
+        
         self.conn = None
         self.cursor = None
+    
+    def _parse_database_url(self, url):
+        """Parse DATABASE_URL into connection parameters"""
+        # Pattern: postgresql://user:password@host:port/database
+        pattern = r'postgresql://([^:]+):([^@]+)@([^:]+):(\d+)/(.+)'
+        match = re.match(pattern, url)
+        if match:
+            self.user = match.group(1)
+            self.password = match.group(2)
+            self.host = match.group(3)
+            self.port = match.group(4)
+            self.database = match.group(5)
+        else:
+            raise ValueError("Invalid DATABASE_URL format")
     
     def connect(self):
         """Establish database connection"""
