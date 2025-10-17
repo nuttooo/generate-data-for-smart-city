@@ -1,19 +1,16 @@
 # Smart City Data Generator (Smart Pole Energy Simulator)
 
-ระบบจำลองข้อมูลพลังงานสำหรับ Smart Pole และ Weather Station แบบเรียลไทม์
+ระบบจำลองข้อมูลพลังงานสำหรับ Smart City แบบเรียลไทม์ รวมถึง Smart Pole, Weather Station, Power Meter และ Flow Meter
 
 ## ✨ Features / คุณสมบัติ
 
 - 🔌 **จำลองการใช้พลังงานแบบเรียลไทม์** - จำลองค่าการใช้ไฟฟ้าของ Smart Pole ตามสภาพแวดล้อมจริง
 - 💡 **Smart Pole Control** - สามารถเปิด/ปิด Smart Pole ได้แบบ Real-time
 - 🌡️ **Weather Station Simulation** - จำลองข้อมูลสภาพอากาศแบบเรียลสติก (อุณหภูมิ, ความชื้น, ความเข้มแสง, ฯลฯ)
-- 📦 **Module-based Power Consumption** - คำนวณพลังงานแยกตามโมดูลต่างๆ:
-  - LED Street Light (ปรับตามความเข้มแสง)
-  - Security Camera
-  - Environmental Sensors
-  - WiFi Access Point
-  - Digital Display
-  - EV Charging Station
+- ⚡ **Power Meters (1-Phase & 3-Phase)** - จำลองมิเตอร์ไฟฟ้าสำหรับห้องและอาคาร
+- 🌊 **Flow Meters** - จำลองมิเตอร์วัดการไหลของน้ำ, ก๊าซ, ไอน้ำ, ลม
+- 📦 **Module-based Power Consumption** - คำนวณพลังงานแยกตามโมดูลต่างๆ
+- 🚀 **REST API with Swagger** - API สำหรับจัดการอุปกรณ์ตามหมวดหมู่
 - 🐘 **PostgreSQL Database** - เก็บข้อมูลด้วย PostgreSQL ผ่าน Docker
 - 🐳 **Docker Support** - ติดตั้งและใช้งานง่ายด้วย Docker Compose
 
@@ -60,13 +57,35 @@ pip install -r requirements.txt
 
 ## 📖 Usage / การใช้งาน
 
-### Generate Single Data Cycle / สร้างข้อมูลครั้งเดียว
+### REST API with Swagger (New!)
+
+Start the REST API server:
+
+```bash
+python main.py api
+```
+
+Open your browser and navigate to:
+- **Swagger UI**: http://localhost:8000/docs
+- **ReDoc**: http://localhost:8000/redoc
+
+API endpoints include:
+- **Device Categories**: List all device types
+- **Smart Poles**: CRUD operations, control, module management
+- **Power Meters**: Create, read, delete 1-phase and 3-phase meters
+- **Flow Meters**: Manage water, gas, steam, and air flow meters
+- **Weather Station**: Get latest weather data
+- **Statistics**: Power consumption and flow rate statistics
+
+### CLI Commands
+
+#### Generate Single Data Cycle / สร้างข้อมูลครั้งเดียว
 
 ```bash
 python main.py generate
 ```
 
-### Continuous Data Generation / สร้างข้อมูลอย่างต่อเนื่อง
+#### Continuous Data Generation / สร้างข้อมูลอย่างต่อเนื่อง
 
 ```bash
 # Default: สร้างข้อมูลทุก 60 วินาที
@@ -76,13 +95,31 @@ python main.py continuous
 python main.py continuous 30
 ```
 
-### List All Smart Poles / ดูรายการ Smart Pole ทั้งหมด
+#### List All Smart Poles / ดูรายการ Smart Pole ทั้งหมด
 
 ```bash
 python main.py list
 ```
 
-### Control Smart Poles / ควบคุม Smart Pole
+#### List Power Meters / ดูรายการ Power Meter
+
+```bash
+python main.py list-power
+```
+
+#### List Flow Meters / ดูรายการ Flow Meter
+
+```bash
+python main.py list-flow
+```
+
+#### List Device Categories / ดูหมวดหมู่อุปกรณ์
+
+```bash
+python main.py list-categories
+```
+
+#### Control Smart Poles / ควบคุม Smart Pole
 
 ```bash
 # เปิด Smart Pole
@@ -95,7 +132,7 @@ python main.py control SP002 off
 python main.py control SP003 toggle
 ```
 
-### View Latest Data / ดูข้อมูลล่าสุด
+#### View Latest Data / ดูข้อมูลล่าสุด
 
 ```bash
 python main.py view
@@ -116,25 +153,43 @@ python main.py view
    - module_type (lighting, camera, sensor, wifi, display, charging)
    - power_rating_w (กำลังไฟฟ้าที่ใช้)
 
-3. **smart_pole_energy** - ข้อมูลการใช้พลังงาน
+3. **smart_pole_energy** - ข้อมูลการใช้พลังงาน Smart Pole
    - pole_id (FK to smart_poles)
    - timestamp
-   - power_consumption_w (กำลังไฟฟ้า Watts)
-   - voltage_v (แรงดัน Volts)
-   - current_a (กระแสไฟฟ้า Amperes)
-   - energy_kwh (พลังงาน kWh)
+   - power_consumption_w, voltage_v, current_a, energy_kwh
    - status
 
 4. **weather_station** - ข้อมูลสภาพอากาศ
-   - station_id
+   - station_id, timestamp
+   - temperature_c, humidity_percent, pressure_hpa
+   - wind_speed_ms, wind_direction_deg, rainfall_mm, light_intensity_lux
+
+5. **power_meters** - ข้อมูล Power Meter (1-phase & 3-phase)
+   - meter_id (unique identifier)
+   - meter_type (1-phase / 3-phase)
+   - location, room_name, building
+   - status
+
+6. **power_meter_readings** - ค่าการอ่านจาก Power Meter
+   - meter_id (FK to power_meters)
    - timestamp
-   - temperature_c (อุณหภูมิ °C)
-   - humidity_percent (ความชื้น %)
-   - pressure_hpa (ความกดอากาศ hPa)
-   - wind_speed_ms (ความเร็วลม m/s)
-   - wind_direction_deg (ทิศทางลม องศา)
-   - rainfall_mm (ปริมาณฝน mm)
-   - light_intensity_lux (ความเข้มแสง lux)
+   - voltage_v, current_a, power_w, power_factor, energy_kwh
+   - For 3-phase: voltage_l1/l2/l3, current_l1/l2/l3, power_l1/l2/l3
+
+7. **flow_meters** - ข้อมูล Flow Meter
+   - meter_id (unique identifier)
+   - meter_type (water, gas, steam, air)
+   - flow_unit (L/min, m3/h, kg/h, etc.)
+   - location, building
+
+8. **flow_meter_readings** - ค่าการอ่านจาก Flow Meter
+   - meter_id (FK to flow_meters)
+   - timestamp
+   - flow_rate, total_volume
+   - temperature_c, pressure_bar, density
+
+9. **device_categories** - หมวดหมู่อุปกรณ์
+   - category_id, category_name, description
 
 ## 🔬 Realistic Simulation Features / ฟีเจอร์การจำลองแบบเรียลสติก
 
